@@ -101,4 +101,4 @@ depth_path = './4_30_data/right/depth1.png'
 converter = PointCloudConverter(rgb_path, depth_path, fx=615.7490234375, fy=615.5992431640625, cx=323.75396728515625, cy=237.6147003173828)
 point_cloud = converter.create_point_cloud(converter.rgbd_image)
 converter.visualize_point_cloud(point_cloud)
-converter.save_point_cloud(point_cloud, './4_30_data/point_cloud/right_1.ply')
+# converter.save_point_cloud(point_cloud, './4_30_data/point_cloud/right_1.ply')

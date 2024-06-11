@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 
 class PointCloudConverter:
-    def __init__(self, rgb_path, depth_path, fx, fy, cx, cy):
+    def __init__(self, rgb_path=None, depth_path=None, rgb_img=None, depth_img=None, fx=615.7490234375, fy=615.5992431640625, cx=323.75396728515625, cy=237.6147003173828):
         """
         Initialize the PointCloudConverter class.
 
@@ -16,12 +16,20 @@ class PointCloudConverter:
         cx (float): Optical center of the camera in x direction.
         cy (float): Optical center of the camera in y direction.
         """
-        self.rgb_path = rgb_path
-        self.depth_path = depth_path
+
+        if rgb_path is not None and depth_path is not None:
+            self.rgb_path = rgb_path
+            self.depth_path = depth_path
+            self.rgb_image = o3d.io.read_image(self.rgb_path)
+            self.depth_image = o3d.io.read_image(self.depth_path)
+        
+        # self.rgb_image = o3d.geometry.Image(rgb_img)
+        # self.depth_image = o3d.geometry.Image(depth_img)
         self.fx = fx
         self.fy = fy
         self.cx = cx
         self.cy = cy
+        print(self.fx, self.fy, self.cx, self.cy)
 
         # Load RGB and Depth images
 
@@ -29,14 +37,14 @@ class PointCloudConverter:
         # cv2.imshow('rgb', rgb)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        self.rgb_image = o3d.io.read_image(self.rgb_path)
-        self.depth_image = o3d.io.read_image(self.depth_path)
+        
+        
         # o3d.visualization.draw_geometries(self.rgb_image)
 
         self.rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(self.rgb_image, self.depth_image)
         
         print(self.rgbd_image)
-        dimensions = self.rgbd_image.dimension
+        dimensions = self.rgbd_image.dimension # what is this being used for
         # Define camera intrinsics
         self.intrinsics = o3d.camera.PinholeCameraIntrinsic(
             width=640,
@@ -71,7 +79,7 @@ class PointCloudConverter:
         pcd.transform([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]])
         return pcd
 
-    def save_point_cloud(self, point_cloud, filename="output_point_cloud.ply"):
+    def save_point_cloud(self, point_cloud, idx=0):
         """
         Save the point cloud to a file.
 
@@ -79,6 +87,7 @@ class PointCloudConverter:
         point_cloud (o3d.geometry.PointCloud): The point cloud to save.
         filename (str): The path to the file where the point cloud should be saved.
         """
+        filename = f"./data/6.11/point_cloud_{idx}.ply"
         o3d.io.write_point_cloud(filename, point_cloud)
 
     def visualize_point_cloud(self, point_cloud):
@@ -95,10 +104,22 @@ class PointCloudConverter:
 #     [fx  0 cx]
 # K = [ 0 fy cy]
 #     [ 0  0  1]
-rgb_path = './4_30_data/right/color1.png'
+idx = 3
+rgb_path = f"./data/6.11/color{idx}.png"
+depth_path = f"./data/6.11/depth{idx}.png"
+# converter = PointCloudConverter(rgb_path, depth_path, fx=615.7490234375, fy=615.5992431640625, cx=323.75396728515625, cy=237.6147003173828)
+# Intrinsic of "Infrared 2" / 640x480 / {Y8}
+#   Width:      	640
+#   Height:     	480
+#   PPX:        	321.350402832031
+#   PPY:        	240.833572387695
+#   Fx:         	599.930725097656
+#   Fy:         	599.930725097656
+#   Distortion: 	Brown Conrady
+#   Coeffs:     	0  	0  	0  	0  	0  
+#   FOV (deg):  	56.15 x 43.61
+converter = PointCloudConverter(rgb_path, depth_path, fx=599.930725097656, fy=599.930725097656, cx=321.350402832031, cy=240.833572387695)
 
-depth_path = './4_30_data/right/depth1.png'
-converter = PointCloudConverter(rgb_path, depth_path, fx=615.7490234375, fy=615.5992431640625, cx=323.75396728515625, cy=237.6147003173828)
 point_cloud = converter.create_point_cloud(converter.rgbd_image)
 converter.visualize_point_cloud(point_cloud)
-# converter.save_point_cloud(point_cloud, './4_30_data/point_cloud/right_1.ply')
+converter.save_point_cloud(point_cloud, idx)

@@ -8,16 +8,16 @@ import time
 import os
 
 # For static images:
-path = "C:\\Users\\RBC\\Documents\\School\\Cornell\\EmPRISE\\patient_on_bed\\taxonomy"
-IMAGE_FILES = []
+path = "./6.11"
+IMAGE_FILES = ['./6.11/rgb_image.png']
 IMAGE_NAMES = []
-for filename in os.listdir(path):
-    # Check if the file is an image file (you can add more image extensions if needed)
-    if filename.endswith(('.png', '.jpg', '.jpeg', '.bmp')):
-        # Construct the full path to the image file
-        image_path = os.path.join(path, filename)
-        IMAGE_NAMES.append(filename)
-        IMAGE_FILES.append(image_path)
+# for filename in os.listdir(path):
+#     # Check if the file is an image file (you can add more image extensions if needed)
+#     if filename.endswith(('.png', '.jpg', '.jpeg', '.bmp')):
+#         # Construct the full path to the image file
+#         image_path = os.path.join(path, filename)
+#         IMAGE_NAMES.append(filename)
+#         IMAGE_FILES.append(image_path)
 BG_COLOR = (192, 192, 192) # gray
 with mp_holistic.Holistic(
     static_image_mode=True,
@@ -30,11 +30,12 @@ with mp_holistic.Holistic(
     # cv2.waitKey(0)
     # cv2.destroyAllWindows()
     image_height, image_width, _ = image.shape
+    print(image_height, image_width)
     # Convert the BGR image to RGB before processing.
     results = holistic.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-
+    print(results.pose_landmarks)
     if results.pose_landmarks:
-      with open("landmarks_taxonomy.txt", "a") as f:
+      with open("./landmarks.txt", "a") as f:
       
         f.write(
         f'Nose coordinates: ('
@@ -64,40 +65,16 @@ with mp_holistic.Holistic(
         
 
     annotated_image = image.copy()
-    # Draw segmentation on the image.
-    # To improve segmentation around boundaries, consider applying a joint
-    # bilateral filter to "results.segmentation_mask" with "image".
-    # if(results.segmentation_mask is not None):
-    #   condition = np.stack((results.segmentation_mask,) * 3, axis=-1) > 0.1
-    #   bg_image = np.zeros(image.shape, dtype=np.uint8)
-    #   bg_image[:] = BG_COLOR
-    #   annotated_image = np.where(condition, annotated_image, bg_image)
-      # Draw pose, left and right hands, and face landmarks on the image.
-    mp_drawing.draw_landmarks(
-        annotated_image,
-        results.face_landmarks,
-        mp_holistic.FACEMESH_TESSELATION,
-        landmark_drawing_spec=None,
-        connection_drawing_spec=mp_drawing_styles
-        .get_default_face_mesh_tesselation_style())
     mp_drawing.draw_landmarks(
         annotated_image,
         results.pose_landmarks,
         mp_holistic.POSE_CONNECTIONS,
         landmark_drawing_spec=mp_drawing_styles.
         get_default_pose_landmarks_style())
-    # cv2.imshow('annotate', annotated_image)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
-    annotated_path = "C:\\Users\\RBC\\Documents\\School\\Cornell\\EmPRISE\\patient_on_bed\\annotate_taxonomy"
-    img_path = os.path.join(annotated_path, IMAGE_NAMES[idx])
-    print(img_path)
-    cv2.imwrite(img_path , annotated_image)
-    # Plot pose world landmarks.
-    # mp_drawing.plot_landmarks(
-    #     results.pose_world_landmarks, mp_holistic.POSE_CONNECTIONS)
-    with open("pose_world_landmarks_tax.txt", "a") as f:
-        f.write(
-        f'{idx}'
-        f'Pose Landmarks 3d: (\n'
-        f'{results.pose_world_landmarks}\n\n')
+    cv2.imshow('annotate', annotated_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    annotated_path = "./6.11"
+    img_path = './6.11/rgb_image'
+    cv2.imwrite(f'{img_path}_annotated.png' , annotated_image)
+    holistic.close()
